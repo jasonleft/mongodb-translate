@@ -1,0 +1,161 @@
+[地址](https://docs.mongodb.com/manual/tutorial/query-documents/)
+
+find的语法如下：
+```javascript
+db.collection.find( <query filter>, <projection> )
+```
+
+你可以给cursor添加修饰符来limits,skips和sort，返回的documents是没有顺序的，除非你指定sort()
+
+## Select All Documents in a Collection
+
+```javascript
+db.users.find( {} )
+```
+
+如果没有查询条件，中间的空对象是可选的。如`db.users.find()`
+
+## Specify Query Filter Conditions
+
+### Specify Equality Condition
+
+查询status值为"A"的documents
+```javascript
+db.users.find( { status: "A" } )
+```
+
+### Specify Conditions Using Query Operators
+
+查询status字段在P和D之间的documents
+```javascript
+db.users.find( { status: { $in: [ "P", "D" ] } } )
+```
+
+### Specify AND Conditions
+
+查询status等于A,且age小于30的documents
+```javascript
+db.users.find( { status: "A", age: { $lt: 30 } } )
+```
+
+### Specify OR Conditions
+
+查询status等于A，或者age小于30的documents
+```javascript
+db.users.find(
+   {
+     $or: [ { status: "A" }, { age: { $lt: 30 } } ]
+   }
+)
+```
+
+### Specify AND as well as OR Conditions
+
+查询status等于A，并且（age小于30或者type等于1）的documents
+```javascript
+db.users.find(
+   {
+     status: "A",
+     $or: [ { age: { $lt: 30 } }, { type: 1 } ]
+   }
+)
+```
+
+## Query on Embedded Documents
+
+### Exact Match on the Embedded Document
+
+查询favorites精确等于{ artist: "Picasso", food: "pizza" }的documents
+```javascript
+db.users.find( { favorites: { artist: "Picasso", food: "pizza" } } )
+```
+
+### Equality Match on Fields within an Embedded Document
+
+查询favorites是个document，且它的artist值等于Picasso的documents
+```javascript
+db.users.find( { "favorites.artist": "Picasso" } )
+```
+
+## Query on Arrays
+
+1. 如果你用 $elemMatch指定多个过滤条件，数组必须包含至少1个元素满足所有的条件。
+2. 如果你不使用 $elemMatch指定多个过滤条件，数组中必须有元素能满足所有条件（可以理解为对每个条件，拿整个数组进行判断，只要有1个元素符合条件，这个条件就为true），即为：数组中可以是不同的元素满足不同的条件。
+
+### Exact Match on an Array
+
+查询badges是数组，且包含元素为 [ "blue", "black" ]，且是按顺序的documents
+```javascript
+db.users.find( { badges: [ "blue", "black" ] } )
+```
+
+### Match an Array Element
+
+查询badges是个数组，并且包含black值作为其1个元素
+```javascript
+db.users.find( { badges: "black" } )
+```
+
+### Match a Specific Element of an Array
+
+查询badges数组中第一个元素的值是black的documents
+```javascript
+db.users.find( { "badges.0": "black" } )
+```
+
+### Specify Multiple Criteria for Array Elements
+
+#### Single Element Satisfies the Criteria
+
+查询finished是个array，且至少包含1个元素大于15并且小于20
+```javascript
+db.users.find( { finished: { $elemMatch: { $gt: 15, $lt: 20 } } } )
+```
+
+#### Combination of Elements Satisfies the Criteria
+
+查询finished是个数组，其中有元素大于15，且有元素小于20，不必是用一个元素，也可以是同一个元素同时满足这2个条件
+```javascript
+db.users.find( { finished: { $gt: 15, $lt: 20 } } )
+```
+
+### Array of Embedded Documents
+
+#### Match a Field in the Embedded Document Using the Array Index
+
+查询points是个array，且其第1个元素是个document,且该元素的points的值小于等于55
+```javascript
+db.users.find( { 'points.0.points': { $lte: 55 } } )
+```
+
+#### Match a Field Without Specifying Array Index
+
+查询points是个array，且其中有元素的points的值小于等于55
+```javascript
+db.users.find( { 'points.points': { $lte: 55 } } )
+```
+
+### Specify Multiple Criteria for Array of Documents
+
+#### Single Element Satisfies the Criteria
+
+查询points是个array，且其中至少有1个document，该doc的points小于等于70，bonus等于20
+```javascript
+db.users.find( { points: { $elemMatch: { points: { $lte: 70 }, bonus: 20 } } } )
+```
+
+#### Combination of Elements Satisfies the Criteria
+
+查询points是个array，其中有元素满足如下条件：points小于等于70，bonus等于20，不必同一个元素同时满足这2个条件
+```javascript
+db.users.find( { "points.points": { $lte: 70 }, "points.bonus": 20 } )
+```
+
+## Additional Methods
+
+* db.collection.findOne()
+* 在aggregation pipeline中，$match pipeline级提供了访问MongoDB queries
+
+```javascript
+
+```
